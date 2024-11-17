@@ -2,18 +2,19 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { AuthRequestConfig, DiscoveryDocument, useAuthRequest } from 'expo-auth-session';
 import { Button, StyleSheet } from 'react-native';
-import { AuthConfiguration, authorize } from 'react-native-app-auth';
 
-const config:AuthConfiguration = {
+const config:AuthRequestConfig = {
     clientId: '2548.h6HtCfzqXc.apps.healthplanet.jp',
-    redirectUrl: 'http://localhost:8081/HealthPlanet',
+    redirectUri: 'http://localhost:8081/HealthPlanet',
     scopes: ['innerscan'],
-    serviceConfiguration: {
-        authorizationEndpoint: 'https://www.healthplanet.jp/oauth/auth',
-        tokenEndpoint: 'https://www.healthplanet.jp/oauth/token',
-    },
 };
+
+const discovery:DiscoveryDocument = {
+    authorizationEndpoint: 'https://www.healthplanet.jp/oauth/auth',
+    tokenEndpoint: 'https://www.healthplanet.jp/oauth/token',
+}
 
 export default function HealthPlanet() {
     return <ParallaxScrollView
@@ -52,9 +53,16 @@ const styles = StyleSheet.create({
 
 const signIn = async () => {
     try {
-        const result = await authorize(config);
-        console.log('Access Token:', result.accessToken);
-        console.log('ID Token:', result.idToken);
+        const [request, response, promptAsync] = useAuthRequest(config, discovery);
+        if (response != null) {
+            if (response.type == "success") {
+                const auth = response.authentication;
+                if (auth != null) {
+                    console.log('Access Token:', auth.accessToken);
+                    console.log('ID Token:', auth.idToken);
+                }
+            }
+        }
     } catch (error) {
         console.error('OAuth Error:', error);
     }
